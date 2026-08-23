@@ -1,0 +1,323 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://missioncompiler.local/schemas/task-spec-0.1.json",
+  "title": "MissionCompiler TaskSpec V0.1",
+  "description": "A reviewable execution contract compiled from a raw software task and observed environment facts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "task_id",
+    "source",
+    "intent",
+    "environment",
+    "facts",
+    "recommendation",
+    "approvals",
+    "verification",
+    "rollback",
+    "unresolved_questions"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1"
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^MC-[A-Z0-9-]{6,64}$"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["raw_prompt", "locale"],
+      "properties": {
+        "raw_prompt": {"type": "string", "minLength": 1},
+        "locale": {"type": "string", "minLength": 2},
+        "conversation_id": {"type": ["string", "null"]}
+      }
+    },
+    "intent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary",
+        "task_type",
+        "deliverables",
+        "must_preserve",
+        "prohibited_actions",
+        "acceptance_criteria"
+      ],
+      "properties": {
+        "summary": {"type": "string", "minLength": 1},
+        "task_type": {"$ref": "#/$defs/taskType"},
+        "deliverables": {"$ref": "#/$defs/nonEmptyStringArray"},
+        "must_preserve": {"$ref": "#/$defs/stringArray"},
+        "prohibited_actions": {"$ref": "#/$defs/stringArray"},
+        "acceptance_criteria": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/acceptanceCriterion"}
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scan_status",
+        "cwd",
+        "repository",
+        "tech_stack",
+        "commands",
+        "capabilities",
+        "codex_catalog"
+      ],
+      "properties": {
+        "scan_status": {"enum": ["complete", "partial", "blocked"]},
+        "cwd": {"type": "string", "minLength": 1},
+        "repository": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["present", "is_git", "dirty", "protected_changes"],
+          "properties": {
+            "present": {"type": "boolean"},
+            "is_git": {"type": "boolean"},
+            "dirty": {"type": "boolean"},
+            "protected_changes": {"$ref": "#/$defs/stringArray"},
+            "branch": {"type": ["string", "null"]}
+          }
+        },
+        "tech_stack": {"$ref": "#/$defs/stringArray"},
+        "commands": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["test", "lint", "build"],
+          "properties": {
+            "test": {"$ref": "#/$defs/stringArray"},
+            "lint": {"$ref": "#/$defs/stringArray"},
+            "build": {"$ref": "#/$defs/stringArray"}
+          }
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/capability"}
+        },
+        "codex_catalog": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source", "models_dynamic", "permission_profiles_dynamic"],
+          "properties": {
+            "source": {"enum": ["app_server", "cli", "unavailable"]},
+            "models_dynamic": {"type": "boolean"},
+            "permission_profiles_dynamic": {"type": "boolean"},
+            "observed_at": {"type": ["string", "null"], "format": "date-time"}
+          }
+        }
+      }
+    },
+    "facts": {"$ref": "#/$defs/normalizedFacts"},
+    "recommendation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "risk_level",
+        "model_tier",
+        "reasoning_effort",
+        "workspace_strategy",
+        "reviewer",
+        "approval_timing",
+        "execution_disposition",
+        "permissions",
+        "capability_plan",
+        "steps",
+        "stop_conditions"
+      ],
+      "properties": {
+        "mode": {"enum": ["direct", "plan"]},
+        "risk_level": {"enum": ["green", "yellow", "red"]},
+        "model_tier": {"enum": ["fast", "balanced", "strong"]},
+        "reasoning_effort": {"enum": ["low", "medium", "high", "xhigh"]},
+        "workspace_strategy": {
+          "enum": [
+            "read_only",
+            "current_workspace",
+            "isolated_worktree",
+            "snapshot_workspace",
+            "external_only"
+          ]
+        },
+        "reviewer": {"type": "boolean"},
+        "approval_timing": {"enum": ["none", "upfront", "per_action", "blocked"]},
+        "execution_disposition": {"enum": ["proceed", "approval_required", "blocked"]},
+        "permissions": {"$ref": "#/$defs/stringArray"},
+        "capability_plan": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/capability"}
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/executionStep"}
+        },
+        "stop_conditions": {"$ref": "#/$defs/nonEmptyStringArray"}
+      }
+    },
+    "approvals": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/approval"}
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checks", "independent_review", "completion_rule"],
+      "properties": {
+        "checks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/verificationCheck"}
+        },
+        "independent_review": {"type": "boolean"},
+        "completion_rule": {"type": "string", "minLength": 1}
+      }
+    },
+    "rollback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["strategy", "steps"],
+      "properties": {
+        "strategy": {
+          "enum": ["none_needed", "discard_worktree", "restore_snapshot", "manual_external_reversal"]
+        },
+        "steps": {"$ref": "#/$defs/stringArray"}
+      }
+    },
+    "unresolved_questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["question", "blocking", "why_not_discoverable"],
+        "properties": {
+          "question": {"type": "string", "minLength": 1},
+          "blocking": {"type": "boolean"},
+          "why_not_discoverable": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "taskType": {
+      "enum": ["bug_fix", "small_feature", "code_review", "test_repair", "project_setup", "analysis"]
+    },
+    "stringArray": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "nonEmptyStringArray": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "acceptanceCriterion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "criterion", "verification", "required"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^AC-[0-9]{2,3}$"},
+        "criterion": {"type": "string", "minLength": 1},
+        "verification": {"type": "string", "minLength": 1},
+        "required": {"type": "boolean"}
+      }
+    },
+    "capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "name", "purpose", "status", "required", "permissions"],
+      "properties": {
+        "kind": {"enum": ["skill", "plugin", "mcp"]},
+        "name": {"type": "string", "minLength": 1},
+        "purpose": {"type": "string", "minLength": 1},
+        "status": {"enum": ["available", "installed", "missing", "untrusted", "not_needed"]},
+        "required": {"type": "boolean"},
+        "source": {"type": ["string", "null"]},
+        "version": {"type": ["string", "null"]},
+        "permissions": {"$ref": "#/$defs/stringArray"}
+      }
+    },
+    "normalizedFacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_type",
+        "clarity",
+        "estimated_files",
+        "estimated_modules",
+        "modifies_files",
+        "git_repo",
+        "dirty_worktree",
+        "requires_network",
+        "requires_capability_install",
+        "needs_visual_check",
+        "difficult_to_rollback",
+        "risk_tags",
+        "external_actions",
+        "conflicts_with_constraint",
+        "untrusted_capability"
+      ],
+      "properties": {
+        "task_type": {"$ref": "#/$defs/taskType"},
+        "clarity": {"enum": ["clear", "partial", "unclear"]},
+        "estimated_files": {"type": "integer", "minimum": 0},
+        "estimated_modules": {"type": "integer", "minimum": 0},
+        "modifies_files": {"type": "boolean"},
+        "git_repo": {"type": "boolean"},
+        "dirty_worktree": {"type": "boolean"},
+        "requires_network": {"type": "boolean"},
+        "requires_capability_install": {"type": "boolean"},
+        "needs_visual_check": {"type": "boolean"},
+        "difficult_to_rollback": {"type": "boolean"},
+        "risk_tags": {"$ref": "#/$defs/stringArray"},
+        "external_actions": {"$ref": "#/$defs/stringArray"},
+        "conflicts_with_constraint": {"type": "boolean"},
+        "untrusted_capability": {"type": "boolean"}
+      }
+    },
+    "executionStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "mutation", "verification"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^STEP-[0-9]{2,3}$"},
+        "title": {"type": "string", "minLength": 1},
+        "mutation": {"type": "boolean"},
+        "verification": {"type": "string", "minLength": 1}
+      }
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "level", "timing", "scope", "status"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^APR-[0-9]{2,3}$"},
+        "level": {"enum": ["yellow", "red"]},
+        "timing": {"enum": ["upfront", "per_action"]},
+        "scope": {"type": "string", "minLength": 1},
+        "status": {"enum": ["pending", "approved", "denied", "expired"]}
+      }
+    },
+    "verificationCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "command_or_method", "required"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^VC-[0-9]{2,3}$"},
+        "name": {"type": "string", "minLength": 1},
+        "command_or_method": {"type": "string", "minLength": 1},
+        "required": {"type": "boolean"}
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  policy-core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.9"
+      - name: Run Python policy tests
+        run: PYTHONPATH=src python3 -m unittest discover -s tests -v
+      - name: Run policy evaluations
+        run: PYTHONPATH=src python3 -m missioncompiler.cli eval evals/tasks.json
+
+  macos-app:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Show Swift toolchain
+        run: swift --version
+      - name: Build and test
+        run: swift test

@@ -1,0 +1,7 @@
+interface:
+  display_name: "MissionCompiler"
+  short_description: "把原始需求编译为安全、可审批、可验收的执行方案"
+  default_prompt: "Use $missioncompiler to inspect this task read-only and present an approval-ready execution plan before making changes."
+
+policy:
+  allow_implicit_invocation: true

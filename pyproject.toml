@@ -1,0 +1,16 @@
+[project]
+name = "missioncompiler-poc"
+version = "0.1.0"
+description = "Deterministic policy core for the MissionCompiler task compiler POC"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+missioncompiler = "missioncompiler.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

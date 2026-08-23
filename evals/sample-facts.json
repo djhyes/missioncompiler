@@ -1,0 +1,15 @@
+{
+  "task_type": "small_feature",
+  "clarity": "partial",
+  "estimated_files": 4,
+  "estimated_modules": 2,
+  "modifies_files": true,
+  "git_repo": true,
+  "dirty_worktree": true,
+  "requires_network": false,
+  "requires_capability_install": false,
+  "needs_visual_check": true,
+  "difficult_to_rollback": false,
+  "risk_tags": [],
+  "external_actions": []
+}

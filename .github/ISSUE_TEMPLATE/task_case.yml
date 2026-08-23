@@ -1,0 +1,39 @@
+name: Task or policy case
+description: Submit a real task where routing, risk, permissions, or approval should improve.
+title: "[Case]: "
+labels: [evaluation]
+body:
+  - type: textarea
+    id: mission
+    attributes:
+      label: Raw mission
+      description: Use a sanitized or synthetic task only.
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Non-negotiable constraints
+      description: What must not change or happen?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected proposal
+      description: Expected mode, risk, permissions, capability choice, approval timing, and workspace strategy.
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: Why this matters
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Safety check
+      options:
+        - label: This case contains no secrets, private code, credentials, or personal data.
+          required: true
