@@ -9,6 +9,8 @@
 
 ![MissionCompiler 原生 macOS 公开预览](assets/missioncompiler-native-preview.png)
 
+**[直接打开折叠式网页样机](https://djhyes.github.io/missioncompiler/designs/missioncompiler-macos/)** · 无需安装，不会执行真实任务
+
 ## 当前能做什么
 
 这是一个诚实标注边界的公开预览，不是已经完成的 Agent 执行器。
